@@ -1,5 +1,18 @@
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+const FPS = 48,
+      CANVAS_CONTEXT = document.getElementById('canvas').getContext('2d');
 
-ctx.fillStyle = "gray";
-ctx.fillRect(10, 10, 300, 300);
+var SoundBubblesView = require('./sound-bubbles-view')();
+
+var soundBubblesView = new SoundBubblesView(
+    CANVAS_CONTEXT,
+    CANVAS_CONTEXT.canvas.width,
+    CANVAS_CONTEXT.canvas.height,
+    0,
+    0
+);
+
+soundBubblesView.draw();
+setInterval(function () {
+    soundBubblesView.update();
+    soundBubblesView.draw();
+}, 1000/FPS);

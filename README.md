@@ -35,3 +35,14 @@ Phase 2: Multiple bubbles with unique pitches, panning and cutoff
 Phase 3: Make bubble sound more interesting!
 
 - TBD
+
+## General FLow
+
+N times per second:
+- Paint the canvas background
+- Determine whether to create a new bubble. If you will:	
+  - Initialize the bubble with visual and audio properties. This includes initiating the associated sound. 
+  - Add it to an array.
+- Determine whether any existing bubbles need to be removed from the array and destroyed.
+- Paint all remaining bubbles.
+
