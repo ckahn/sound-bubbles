@@ -2,26 +2,21 @@ var _ = require('lodash');
 var Bubble = require('./bubble')();
 
 module.exports = function () {
-    var SoundBubblesView = function (canvasCtx, width, height, posX, posY) {
+    var SoundBubblesView = function (canvasCtx, backgroundColor) {
         this.canvasCtx = canvasCtx;
-        this.width  = width;
-        this.height = height;
-        this.posX = posX;
-        this.posY = posY;
-        this.bubbles = [new Bubble(this)];
+        this.backgroundColor = backgroundColor;
+        this.bubbles = [];
     };
 
     SoundBubblesView.prototype.draw = function () {
-        // draw background
-        this.canvasCtx.fillStyle = "gray";
+        this.canvasCtx.fillStyle = this.backgroundColor;
         this.canvasCtx.fillRect(
-            this.posX,
-            this.posY,
-            this.width,
-            this.height
+            0,
+            0,
+            this.canvasCtx.canvas.width,
+            this.canvasCtx.canvas.height
         );
 
-        // draw any existing bubbles
         _.each(this.bubbles, function (bubble) {
             bubble.draw();
         });
@@ -29,18 +24,14 @@ module.exports = function () {
 
     SoundBubblesView.prototype.update = function () {
         var newBubbles = [];
-        // iterate through bubbles
-           // tell bubble "update thyself"
-           // if bubble replies "i'm dead now", remove it
         _.each(this.bubbles, function (bubble) {
             bubble.update();
-            if (!bubble.destroyed) {
+            if (!bubble.destroy) {
                 newBubbles.push(bubble);
             }
         });
-        // decide whether to create a new bubble
-        if (false) {
-            newBubbles.push(new Bubble(this));
+        if (this.bubbles.length === 0) {
+            newBubbles.push(new Bubble(this.canvasCtx, 30));
         }
         this.bubbles = newBubbles;
     };

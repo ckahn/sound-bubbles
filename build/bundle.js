@@ -1,82 +1,81 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+function randomRgbValue() {
+    return Math.floor(255 * Math.random());
+}
+
+function randomColor() {
+    var rgb = [randomRgbValue(), randomRgbValue(), randomRgbValue()];
+    return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
+}
+
 module.exports = function () {
-    var Bubble = function (soundBubblesView) {
-        this.view = soundBubblesView;
-        this.destroyed = false;
-        this.radius = 20;
+    var Bubble = function (canvasCtx, radius) {
+        this.canvasCtx = canvasCtx;
+        this.destroy = false;
+        this.color = randomColor();
+        this.radius = radius;
         this.position = {
-            x: 10,
-            y: 10
+            x: this.canvasCtx.canvas.width / 2 * Math.random(),
+            y: this.canvasCtx.canvas.height / 2 * Math.random()
         };
+        this.lifeTime = 0;
     };
 
     Bubble.prototype.draw = function () {
-        this.view.canvasCtx.beginPath();
-        this.view.canvasCtx.arc(
-            this.view.width / 2,
-            this.view.height / 2,
+        this.canvasCtx.beginPath();
+        this.canvasCtx.arc(
+            this.position.x,
+            this.position.y,
             this.radius,
             0,
-            Math.PI+(Math.PI*10)/2,
+            2 * Math.PI,
             false
         );
-        this.view.canvasCtx.fillStyle = 'green';
-        this.view.canvasCtx.fill();
-        this.view.canvasCtx.lineWidth = 5;
-        this.view.canvasCtx.strokeStyle = '#003300';
-        this.view.canvasCtx.stroke();
+        this.canvasCtx.fillStyle = this.color;
+        this.canvasCtx.fill();
     };
 
     Bubble.prototype.update = function () {
-        this.destroyed = true;
+        if (this.lifeTime > 48) {
+            this.destroy = true;
+        }
+        this.lifeTime++;
     };
 
     return Bubble;
 };
 },{}],2:[function(require,module,exports){
 const FPS = 48,
-      CANVAS_CONTEXT = document.getElementById('canvas').getContext('2d');
+      CANVAS_CONTEXT = document.getElementById('canvas').getContext('2d'),
+      BACKGROUND_COLOR = "#f2f2f2";
 
 var SoundBubblesView = require('./sound-bubbles-view')();
+var soundBubblesView = new SoundBubblesView(CANVAS_CONTEXT, BACKGROUND_COLOR);
 
-var soundBubblesView = new SoundBubblesView(
-    CANVAS_CONTEXT,
-    CANVAS_CONTEXT.canvas.width,
-    CANVAS_CONTEXT.canvas.height,
-    0,
-    0
-);
-
-soundBubblesView.draw();
 setInterval(function () {
-    soundBubblesView.update();
     soundBubblesView.draw();
+    soundBubblesView.update();
 }, 1000/FPS);
 },{"./sound-bubbles-view":3}],3:[function(require,module,exports){
 var _ = require('lodash');
 var Bubble = require('./bubble')();
 
 module.exports = function () {
-    var SoundBubblesView = function (canvasCtx, width, height, posX, posY) {
+    var SoundBubblesView = function (canvasCtx, backgroundColor) {
         this.canvasCtx = canvasCtx;
-        this.width  = width;
-        this.height = height;
-        this.posX = posX;
-        this.posY = posY;
-        this.bubbles = [new Bubble(this)];
+        this.backgroundColor = backgroundColor;
+        this.bubbles = [];
     };
 
     SoundBubblesView.prototype.draw = function () {
-        // draw background
-        this.canvasCtx.fillStyle = "gray";
+        this.canvasCtx.fillStyle = this.backgroundColor;
         this.canvasCtx.fillRect(
-            this.posX,
-            this.posY,
-            this.width,
-            this.height
+            0,
+            0,
+            this.canvasCtx.canvas.width,
+            this.canvasCtx.canvas.height
         );
 
-        // draw any existing bubbles
         _.each(this.bubbles, function (bubble) {
             bubble.draw();
         });
@@ -84,18 +83,14 @@ module.exports = function () {
 
     SoundBubblesView.prototype.update = function () {
         var newBubbles = [];
-        // iterate through bubbles
-           // tell bubble "update thyself"
-           // if bubble replies "i'm dead now", remove it
         _.each(this.bubbles, function (bubble) {
             bubble.update();
-            if (!bubble.destroyed) {
+            if (!bubble.destroy) {
                 newBubbles.push(bubble);
             }
         });
-        // decide whether to create a new bubble
-        if (false) {
-            newBubbles.push(new Bubble(this));
+        if (this.bubbles.length === 0) {
+            newBubbles.push(new Bubble(this.canvasCtx, 30));
         }
         this.bubbles = newBubbles;
     };
