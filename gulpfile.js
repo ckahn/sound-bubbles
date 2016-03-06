@@ -12,12 +12,12 @@ gulp.task('browserify', function() {
         .pipe(gulp.dest('./build/'));
 });
 
-gulp.task('browser-sync', function () {
+gulp.task('browser-sync', ['browserify'], function () {
     browserSync.reload();
 });
 
-gulp.task('watch', ['browserify', 'browser-sync'], function () {
-    gulp.watch('./app/**', ['browserify', 'browser-sync']);
+gulp.task('watch', ['browser-sync'], function () {
+    gulp.watch('./app/**', ['browser-sync']);
 });
 
 gulp.task('default', ['watch']);
