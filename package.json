@@ -1,0 +1,23 @@
+{
+  "name": "sound-bubbles",
+  "version": "1.0.0",
+  "description": "Musical bubbles on HTML5 Canvas \"pop\" in 3D audio space with sound generated in realtime using Web Audio API",
+  "main": "index.js",
+  "devDependencies": {
+    "browser-sync": "^2.11.1",
+    "gulp": "^3.9.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckahn/sound-bubbles.git"
+  },
+  "author": "Chris Kahn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ckahn/sound-bubbles/issues"
+  },
+  "homepage": "https://github.com/ckahn/sound-bubbles#readme"
+}
