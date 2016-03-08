@@ -10,12 +10,12 @@ function randomColor() {
 module.exports = function () {
     var Bubble = function (canvasCtx, radius) {
         this.canvasCtx = canvasCtx;
-        this.destroy = false;
+        this.alive = true;
         this.color = randomColor();
-        this.radius = radius;
+        this.radius = 1;
         this.position = {
-            x: this.canvasCtx.canvas.width / 2 * Math.random(),
-            y: this.canvasCtx.canvas.height / 2 * Math.random()
+            x: this.canvasCtx.canvas.width * Math.random(),
+            y: this.canvasCtx.canvas.height * Math.random()
         };
         this.lifeTime = 0;
     };
@@ -36,8 +36,9 @@ module.exports = function () {
 
     Bubble.prototype.update = function () {
         if (this.lifeTime > 48) {
-            this.destroy = true;
+            this.alive = false;
         }
+        this.radius++;
         this.lifeTime++;
     };
 

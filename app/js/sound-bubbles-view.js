@@ -26,12 +26,12 @@ module.exports = function () {
         var newBubbles = [];
         _.each(this.bubbles, function (bubble) {
             bubble.update();
-            if (!bubble.destroy) {
+            if (bubble.alive) {
                 newBubbles.push(bubble);
             }
         });
         if (this.bubbles.length === 0) {
-            newBubbles.push(new Bubble(this.canvasCtx, 30));
+            newBubbles.push(new Bubble(this.canvasCtx));
         }
         this.bubbles = newBubbles;
     };
