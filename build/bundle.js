@@ -5,12 +5,16 @@ function randomRgbValue() {
 
 function randomColor() {
     var rgb = [randomRgbValue(), randomRgbValue(), randomRgbValue()];
-    return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
+    return 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', 0.5)';
 }
 
 module.exports = function () {
-    var Bubble = function (canvasCtx, radius) {
+    var Bubble = function (canvasCtx, audioCtx) {
         this.canvasCtx = canvasCtx;
+        this.audioCtx = audioCtx;
+        this.osc = audioCtx.createOscillator();
+        this.gain = audioCtx.createGain();
+        this.osc.frequency.value = 440 + (220 * Math.random());
         this.alive = true;
         this.color = randomColor();
         this.radius = 1;
@@ -19,7 +23,17 @@ module.exports = function () {
             y: this.canvasCtx.canvas.height * Math.random()
         };
         this.lifeTime = 0;
+        this.gain.gain.value = 0;
+        startSound(audioCtx, this.osc, this.gain);
     };
+
+    function startSound(audioCtx, osc, gain) {
+        var oscShapes = ['square', 'sine', 'sawtooth'];
+        osc.type = oscShapes[Math.floor(Math.random() * 3)];
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+    }
 
     Bubble.prototype.draw = function () {
         this.canvasCtx.beginPath();
@@ -36,9 +50,14 @@ module.exports = function () {
     };
 
     Bubble.prototype.update = function () {
-        if (this.lifeTime > 48) {
+        if (this.lifeTime > 30 + (30 * Math.random())) {
             this.alive = false;
+            this.gain.gain.value = 0;
+            setTimeout(function () {
+                this.osc.stop();
+            }.bind(this), 100);
         }
+        this.gain.gain.value += 0.005;
         this.radius++;
         this.lifeTime++;
     };
@@ -47,10 +66,15 @@ module.exports = function () {
 };
 },{}],2:[function(require,module,exports){
 const CANVAS_CONTEXT = document.getElementById('canvas').getContext('2d'),
+      AUDIO_CONTEXT  = new (window.AudioContext || window.webkitAudioContext)(),
       BACKGROUND_COLOR = "#f2f2f2";
 
 var SoundBubblesView = require('./sound-bubbles-view')();
-var soundBubblesView = new SoundBubblesView(CANVAS_CONTEXT, BACKGROUND_COLOR);
+var soundBubblesView = new SoundBubblesView(
+	CANVAS_CONTEXT,
+	AUDIO_CONTEXT,
+	BACKGROUND_COLOR
+);
 
 function animate() {
     soundBubblesView.draw();
@@ -64,11 +88,21 @@ var _ = require('lodash');
 var Bubble = require('./bubble')();
 
 module.exports = function () {
-    var SoundBubblesView = function (canvasCtx, backgroundColor) {
+    var SoundBubblesView = function (canvasCtx, audioCtx, backgroundColor) {
         this.canvasCtx = canvasCtx;
+        this.audioCtx  = audioCtx;
         this.backgroundColor = backgroundColor;
         this.bubbles = [];
     };
+
+    function createSound(audioCtx) {
+        var osc  = audioCtx.createOscillator(),
+            gain = audioCtx.createGain();
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+    }
 
     SoundBubblesView.prototype.draw = function () {
         this.canvasCtx.fillStyle = this.backgroundColor;
@@ -92,8 +126,8 @@ module.exports = function () {
                 newBubbles.push(bubble);
             }
         });
-        if (this.bubbles.length === 0) {
-            newBubbles.push(new Bubble(this.canvasCtx));
+        if (Math.random() < 0.05) {
+            newBubbles.push(new Bubble(this.canvasCtx, this.audioCtx));
         }
         this.bubbles = newBubbles;
     };

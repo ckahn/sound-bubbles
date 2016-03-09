@@ -2,11 +2,21 @@ var _ = require('lodash');
 var Bubble = require('./bubble')();
 
 module.exports = function () {
-    var SoundBubblesView = function (canvasCtx, backgroundColor) {
+    var SoundBubblesView = function (canvasCtx, audioCtx, backgroundColor) {
         this.canvasCtx = canvasCtx;
+        this.audioCtx  = audioCtx;
         this.backgroundColor = backgroundColor;
         this.bubbles = [];
     };
+
+    function createSound(audioCtx) {
+        var osc  = audioCtx.createOscillator(),
+            gain = audioCtx.createGain();
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+    }
 
     SoundBubblesView.prototype.draw = function () {
         this.canvasCtx.fillStyle = this.backgroundColor;
@@ -30,8 +40,8 @@ module.exports = function () {
                 newBubbles.push(bubble);
             }
         });
-        if (this.bubbles.length === 0) {
-            newBubbles.push(new Bubble(this.canvasCtx));
+        if (Math.random() < 0.05) {
+            newBubbles.push(new Bubble(this.canvasCtx, this.audioCtx));
         }
         this.bubbles = newBubbles;
     };
