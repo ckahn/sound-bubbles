@@ -40,7 +40,7 @@ module.exports = function () {
                 newBubbles.push(bubble);
             }
         });
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.03) {
             newBubbles.push(new Bubble(this.canvasCtx, this.audioCtx));
         }
         this.bubbles = newBubbles;

@@ -14,7 +14,7 @@ module.exports = function () {
         this.audioCtx = audioCtx;
         this.osc = audioCtx.createOscillator();
         this.gain = audioCtx.createGain();
-        this.osc.frequency.value = 440 + (220 * Math.random());
+        this.osc.frequency.value = [440, 493.883, 587.330, 523.251, 659.255, 783.991, 110][Math.floor(Math.random() * 7)];
         this.alive = true;
         this.color = randomColor();
         this.radius = 1;
@@ -22,14 +22,18 @@ module.exports = function () {
             x: this.canvasCtx.canvas.width * Math.random(),
             y: this.canvasCtx.canvas.height * Math.random()
         };
-        this.lifeTime = 0;
+        this.birthTime = Date.now();
         this.gain.gain.value = 0;
+        this.lifePeak = 25 + (25 * Math.random());
+        this.maxRadius = 100;
+        this.maxGain = 1;
+        this.lifeSpan = this.lifePeak + 500 + (500 * Math.random());
         startSound(audioCtx, this.osc, this.gain);
     };
 
     function startSound(audioCtx, osc, gain) {
-        var oscShapes = ['square', 'sine', 'sawtooth'];
-        osc.type = oscShapes[Math.floor(Math.random() * 3)];
+        var oscShapes = ['square', 'sine', 'sawtooth', 'triangle'];
+        osc.type = oscShapes[Math.floor(Math.random() * 4)];
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
@@ -50,16 +54,22 @@ module.exports = function () {
     };
 
     Bubble.prototype.update = function () {
-        if (this.lifeTime > 30 + (30 * Math.random())) {
+        var age = Date.now() - this.birthTime;
+        var percentToPeak = age / this.lifePeak;
+        var percentPeakToEnd =
+            (age - this.lifePeak) / (this.lifeSpan - this.lifePeak);
+
+        if (age > this.lifeSpan) {
             this.alive = false;
-            this.gain.gain.value = 0;
-            setTimeout(function () {
-                this.osc.stop();
-            }.bind(this), 100);
+            this.osc.stop();
         }
-        this.gain.gain.value += 0.005;
-        this.radius++;
-        this.lifeTime++;
+        else if (age < this.lifePeak) {
+            this.radius = this.maxRadius * percentToPeak;
+            this.gain.gain.value = this.maxGain * percentToPeak;
+        } else {
+            this.radius = (1 - percentPeakToEnd) * this.maxRadius;
+            this.gain.gain.value = (1 - percentPeakToEnd) * this.maxGain;
+        }
     };
 
     return Bubble;
@@ -126,7 +136,7 @@ module.exports = function () {
                 newBubbles.push(bubble);
             }
         });
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.03) {
             newBubbles.push(new Bubble(this.canvasCtx, this.audioCtx));
         }
         this.bubbles = newBubbles;
