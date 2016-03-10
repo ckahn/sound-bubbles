@@ -6,6 +6,7 @@ module.exports = function () {
         this.canvasCtx = canvasCtx;
         this.audioCtx  = audioCtx;
         this.backgroundColor = backgroundColor;
+        this.bubbleCreationRate = 0;
         this.bubbles = [];
     };
 
@@ -40,7 +41,7 @@ module.exports = function () {
                 newBubbles.push(bubble);
             }
         });
-        if (Math.random() < 0.03) {
+        if (Math.random() < this.bubbleCreationRate) {
             newBubbles.push(new Bubble(this.canvasCtx, this.audioCtx));
         }
         this.bubbles = newBubbles;

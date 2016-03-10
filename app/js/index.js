@@ -16,3 +16,8 @@ function animate() {
 }
 
 animate();
+
+$('#canvas').mousemove(function (e) {
+	var percentFromBottom = 1 - (e.clientY / CANVAS_CONTEXT.canvas.height);
+	soundBubblesView.bubbleCreationRate = percentFromBottom;
+});

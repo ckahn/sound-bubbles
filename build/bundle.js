@@ -93,6 +93,11 @@ function animate() {
 }
 
 animate();
+
+$('#canvas').mousemove(function (e) {
+	var percentFromBottom = 1 - (e.clientY / CANVAS_CONTEXT.canvas.height);
+	soundBubblesView.bubbleCreationRate = percentFromBottom;
+});
 },{"./sound-bubbles-view":3}],3:[function(require,module,exports){
 var _ = require('lodash');
 var Bubble = require('./bubble')();
@@ -102,6 +107,7 @@ module.exports = function () {
         this.canvasCtx = canvasCtx;
         this.audioCtx  = audioCtx;
         this.backgroundColor = backgroundColor;
+        this.bubbleCreationRate = 0;
         this.bubbles = [];
     };
 
@@ -136,7 +142,7 @@ module.exports = function () {
                 newBubbles.push(bubble);
             }
         });
-        if (Math.random() < 0.03) {
+        if (Math.random() < this.bubbleCreationRate) {
             newBubbles.push(new Bubble(this.canvasCtx, this.audioCtx));
         }
         this.bubbles = newBubbles;
