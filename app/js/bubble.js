@@ -16,9 +16,9 @@ function waveform() {
 }
 
 function pitch() {
-    var notes = [440, 493.883, 587.330, 523.251, 659.255, 783.991, 110],
+    var notes = [110, 440, 523.25, 659.26, 783.99],
         idx = Math.floor(Math.random() * notes.length);
-    return notes[idx];
+    return notes[idx] + (Math.random() * 0.3);
 }
 
 module.exports = function () {
@@ -27,7 +27,7 @@ module.exports = function () {
         this.audioCtx = audioCtx;
         this.alive = true;
         this.color = randomColor();
-        this.radius = 1;
+        this.radius = 0;
         this.position = {
             x: this.canvasCtx.canvas.width * Math.random(),
             y: this.canvasCtx.canvas.height * Math.random()
@@ -37,7 +37,13 @@ module.exports = function () {
         this.maxRadius = 100;
         this.maxGain = 0.1;
         this.lifeSpan = this.lifePeak + 500 + (500 * Math.random());
-        this.synth = new Synth(waveform(), pitch(), 0, (this.position.x - this.canvasCtx.canvas.width/2) * 0.01, audioCtx);
+        this.synth = new Synth(
+            waveform(),
+            pitch(),
+            0,
+            (this.position.x - this.canvasCtx.canvas.width/2) * 0.008,
+            audioCtx
+        );
         this.synth.start();
     };
 

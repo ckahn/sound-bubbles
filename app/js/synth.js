@@ -10,7 +10,6 @@ module.exports = function () {
 
 		this.pitch  = this.osc.frequency;
 		this.volume = this.gain.gain;
-
 		this.pitch.value = pitch;
 		this.volume.value = volume;
 
