@@ -1,20 +1,31 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-function randomRgbValue() {
-    return Math.floor(255 * Math.random());
-}
+var Synth = require('./synth')();
 
 function randomColor() {
     var rgb = [randomRgbValue(), randomRgbValue(), randomRgbValue()];
     return 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', 0.5)';
 }
 
+function randomRgbValue() {
+    return Math.floor(255 * Math.random());
+}
+
+function waveform() {
+    var shapes = ['square', 'sine', 'sawtooth', 'triangle'],
+        idx = Math.floor(Math.random() * shapes.length);
+    return shapes[idx];
+}
+
+function pitch() {
+    var notes = [440, 493.883, 587.330, 523.251, 659.255, 783.991, 110],
+        idx = Math.floor(Math.random() * notes.length);
+    return notes[idx];
+}
+
 module.exports = function () {
     var Bubble = function (canvasCtx, audioCtx) {
         this.canvasCtx = canvasCtx;
         this.audioCtx = audioCtx;
-        this.osc = audioCtx.createOscillator();
-        this.gain = audioCtx.createGain();
-        this.osc.frequency.value = [440, 493.883, 587.330, 523.251, 659.255, 783.991, 110][Math.floor(Math.random() * 7)];
         this.alive = true;
         this.color = randomColor();
         this.radius = 1;
@@ -23,21 +34,13 @@ module.exports = function () {
             y: this.canvasCtx.canvas.height * Math.random()
         };
         this.birthTime = Date.now();
-        this.gain.gain.value = 0;
         this.lifePeak = 25 + (25 * Math.random());
         this.maxRadius = 100;
-        this.maxGain = 1;
+        this.maxGain = 0.1;
         this.lifeSpan = this.lifePeak + 500 + (500 * Math.random());
-        startSound(audioCtx, this.osc, this.gain);
+        this.synth = new Synth(waveform(), pitch(), 0, (this.position.x - this.canvasCtx.canvas.width/2) * 0.01, audioCtx);
+        this.synth.start();
     };
-
-    function startSound(audioCtx, osc, gain) {
-        var oscShapes = ['square', 'sine', 'sawtooth', 'triangle'];
-        osc.type = oscShapes[Math.floor(Math.random() * 4)];
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-    }
 
     Bubble.prototype.draw = function () {
         this.canvasCtx.beginPath();
@@ -61,20 +64,20 @@ module.exports = function () {
 
         if (age > this.lifeSpan) {
             this.alive = false;
-            this.osc.stop();
+            this.synth.stop();
         }
         else if (age < this.lifePeak) {
             this.radius = this.maxRadius * percentToPeak;
-            this.gain.gain.value = this.maxGain * percentToPeak;
+            this.synth.volume.value = this.maxGain * percentToPeak;
         } else {
             this.radius = (1 - percentPeakToEnd) * this.maxRadius;
-            this.gain.gain.value = (1 - percentPeakToEnd) * this.maxGain;
+            this.synth.volume.value = (1 - percentPeakToEnd) * this.maxGain;
         }
     };
 
     return Bubble;
 };
-},{}],2:[function(require,module,exports){
+},{"./synth":4}],2:[function(require,module,exports){
 const CANVAS_CONTEXT = document.getElementById('canvas').getContext('2d'),
       AUDIO_CONTEXT  = new (window.AudioContext || window.webkitAudioContext)(),
       BACKGROUND_COLOR = "#f2f2f2";
@@ -107,7 +110,7 @@ module.exports = function () {
         this.canvasCtx = canvasCtx;
         this.audioCtx  = audioCtx;
         this.backgroundColor = backgroundColor;
-        this.bubbleCreationRate = 0;
+        this.bubbleCreationRate = 0.3;
         this.bubbles = [];
     };
 
@@ -151,7 +154,43 @@ module.exports = function () {
     return SoundBubblesView;
 };
 
-},{"./bubble":1,"lodash":4}],4:[function(require,module,exports){
+},{"./bubble":1,"lodash":5}],4:[function(require,module,exports){
+module.exports = function () {
+	var Synth = function (shape, pitch, volume, positionX, audioCtx) {
+		this.panner = audioCtx.createPanner();
+		this.panner.setPosition(positionX,0,1);
+		this.audioCtx = audioCtx;
+		this.osc  = audioCtx.createOscillator();
+		this.gain = audioCtx.createGain();
+
+		this.osc.type = shape;
+
+		this.pitch  = this.osc.frequency;
+		this.volume = this.gain.gain;
+
+		this.pitch.value = pitch;
+		this.volume.value = volume;
+
+		this.osc.connect(this.gain);
+		this.gain.connect(this.panner);
+		this.panner.connect(this.audioCtx.destination);
+	};
+
+	Synth.prototype.start = function () {
+		this.osc.start();
+	};
+
+	Synth.prototype.stop = function () {
+		this.osc.stop();
+	};
+
+	Synth.prototype.setPositionX = function (x) {
+		this.panner.setPosition(x, 0, 1);
+	};
+
+	return Synth;
+};
+},{}],5:[function(require,module,exports){
 (function (global){
 /**
  * @license

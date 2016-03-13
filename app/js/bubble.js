@@ -1,19 +1,30 @@
-function randomRgbValue() {
-    return Math.floor(255 * Math.random());
-}
+var Synth = require('./synth')();
 
 function randomColor() {
     var rgb = [randomRgbValue(), randomRgbValue(), randomRgbValue()];
     return 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', 0.5)';
 }
 
+function randomRgbValue() {
+    return Math.floor(255 * Math.random());
+}
+
+function waveform() {
+    var shapes = ['square', 'sine', 'sawtooth', 'triangle'],
+        idx = Math.floor(Math.random() * shapes.length);
+    return shapes[idx];
+}
+
+function pitch() {
+    var notes = [440, 493.883, 587.330, 523.251, 659.255, 783.991, 110],
+        idx = Math.floor(Math.random() * notes.length);
+    return notes[idx];
+}
+
 module.exports = function () {
     var Bubble = function (canvasCtx, audioCtx) {
         this.canvasCtx = canvasCtx;
         this.audioCtx = audioCtx;
-        this.osc = audioCtx.createOscillator();
-        this.gain = audioCtx.createGain();
-        this.osc.frequency.value = [440, 493.883, 587.330, 523.251, 659.255, 783.991, 110][Math.floor(Math.random() * 7)];
         this.alive = true;
         this.color = randomColor();
         this.radius = 1;
@@ -22,21 +33,13 @@ module.exports = function () {
             y: this.canvasCtx.canvas.height * Math.random()
         };
         this.birthTime = Date.now();
-        this.gain.gain.value = 0;
         this.lifePeak = 25 + (25 * Math.random());
         this.maxRadius = 100;
-        this.maxGain = 1;
+        this.maxGain = 0.1;
         this.lifeSpan = this.lifePeak + 500 + (500 * Math.random());
-        startSound(audioCtx, this.osc, this.gain);
+        this.synth = new Synth(waveform(), pitch(), 0, (this.position.x - this.canvasCtx.canvas.width/2) * 0.01, audioCtx);
+        this.synth.start();
     };
-
-    function startSound(audioCtx, osc, gain) {
-        var oscShapes = ['square', 'sine', 'sawtooth', 'triangle'];
-        osc.type = oscShapes[Math.floor(Math.random() * 4)];
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-    }
 
     Bubble.prototype.draw = function () {
         this.canvasCtx.beginPath();
@@ -60,14 +63,14 @@ module.exports = function () {
 
         if (age > this.lifeSpan) {
             this.alive = false;
-            this.osc.stop();
+            this.synth.stop();
         }
         else if (age < this.lifePeak) {
             this.radius = this.maxRadius * percentToPeak;
-            this.gain.gain.value = this.maxGain * percentToPeak;
+            this.synth.volume.value = this.maxGain * percentToPeak;
         } else {
             this.radius = (1 - percentPeakToEnd) * this.maxRadius;
-            this.gain.gain.value = (1 - percentPeakToEnd) * this.maxGain;
+            this.synth.volume.value = (1 - percentPeakToEnd) * this.maxGain;
         }
     };
 

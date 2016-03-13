@@ -6,7 +6,7 @@ module.exports = function () {
         this.canvasCtx = canvasCtx;
         this.audioCtx  = audioCtx;
         this.backgroundColor = backgroundColor;
-        this.bubbleCreationRate = 0;
+        this.bubbleCreationRate = 0.3;
         this.bubbles = [];
     };
 
