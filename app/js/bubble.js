@@ -15,9 +15,9 @@ function waveform() {
     return shapes[idx];
 }
 
-function pitch() {
-    var notes = [110, 440, 523.25, 659.26, 783.99],
-        idx = Math.floor(Math.random() * notes.length);
+function pitch(percent) {
+    var notes = [110.00, 130.81, 146.83, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63, 392.00, 440.00],
+        idx = (notes.length - 1) - (Math.floor(percent * (notes.length - 1)));
     return notes[idx] + (Math.random() * 0.3);
 }
 
@@ -33,13 +33,13 @@ module.exports = function () {
             y: this.canvasCtx.canvas.height * Math.random()
         };
         this.birthTime = Date.now();
-        this.lifePeak = 25 + (25 * Math.random());
+        this.lifePeak = 10 + 500 * Math.random();
         this.maxRadius = 100;
         this.maxGain = 0.1;
-        this.lifeSpan = this.lifePeak + 500 + (500 * Math.random());
+        this.lifeSpan = this.lifePeak + (500 * Math.random());
         this.synth = new Synth(
             waveform(),
-            pitch(),
+            pitch(this.position.y/this.canvasCtx.canvas.height),
             0,
             (this.position.x - this.canvasCtx.canvas.width/2) * 0.008,
             audioCtx
